@@ -156,7 +156,7 @@
                 (begin
                   (setref! ref1 val2)
                   (setref! ref2 val1)
-                  val1))
+                  val2))
               (eopl:error 'evaluar-expresion 
                           "swap requiere dos referencias"))))
 
