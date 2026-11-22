@@ -37,6 +37,19 @@
                            idx (tipo->texto (car f)) (tipo->texto (car r)))]
               [else (loop (+ idx 1) (cdr f) (cdr r))]))))))
 
+;; verificar-refs : list-of-tipo -> boolean
+;; Propósito: Verifica que el tipo de cada argumento de applyref sea refto(t).
+(define verificar-refs
+  (lambda (tipos)
+    (let loop ([idx 1] [ts tipos])
+      (if (null? ts)
+          #t
+          (cases tipo (car ts)
+            (ref-tipo (t-elem) (loop (+ idx 1) (cdr ts)))
+            (else
+             (eopl:error 'type-of "El argumento ~a debe ser refto(t), se encontro ~a"
+                         idx (tipo->texto (car ts)))))))))
+
 ;; type-of : expresion x tenv -> tipo
 ;; El tipo de la expresión bajo el ambiente de tipos, o eopl:error con
 ;; el mensaje que explique el conflicto.
@@ -106,6 +119,7 @@
               [tipos-ids (map (lambda (id) (apply-tenv amb id)) ids)])
           (cases tipo tipo-rator
             (proc-tipo (tipos-formales tipo-retorno)
+              (verificar-refs tipos-ids)
               (chequear-aplicacion tipos-formales tipos-ids tipo-retorno))
             (else
              (eopl:error 'type-of "Se intento aplicar un valor de tipo ~a"
