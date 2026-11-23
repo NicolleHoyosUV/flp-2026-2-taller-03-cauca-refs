@@ -17,6 +17,7 @@ de Programación — Universidad del Valle, Sede Tuluá.
 Informe 
 
 
+
 ## Parte 2: paso por valor y paso por referencia
 
 ### 1. Los dos mecanismos
@@ -268,134 +269,193 @@ La corrección se argumenta demostrando:
 
 ## 2. Funciones analizadas
 
-> Complete **una subsección por cada función pedida en el enunciado**.
-> Copie la plantilla de subsección tantas veces como sea necesario.
-
-### 2.1 Corrección de `{{nombre-funcion-1}}`
+### 2.1 Corrección de `replace-at`
 
 **Especificación.**
 
-- **Tipo:** `{{nombre-funcion-1}} : {{Tipo de entrada}} -> {{Tipo de salida}}`
-- **Pre-condición:** $\text{Pre}(a) \equiv \{{\ldots}\}$.
-- **Post-condición:** $\text{Post}(a, r) \equiv r = f(a)$, donde
-  $f$ es {{descripción matemática de la función}}.
+- **Tipo:** `replace-at : list x integer x valor -> list`
+- **Pre-condición:** $\text{Pre}(L, p, v) \equiv \vert{}L\vert{} = n \ge 1 \land 0 \le p < n$.
+- **Post-condición:** $\text{Post}(L, p, v, L') \equiv \vert{}L'\vert{} = \vert{}L\vert{} \land L'[p] = v \land \forall i \in \{0,\dots,n-1\},\, i \neq p \Rightarrow L'[i] = L[i]$.
 
-**Código.**
+**Código (`src/almacen.rkt`).**
 
-```racket
-; {{nombre-funcion-1}} : {{contrato}}
-; Propósito: {{...}}
-(define ({{nombre-funcion-1}} ...)
-  ...)
+```scheme
+;; replace-at : list x integer x valor -> list
+;; Propósito: Función auxiliar que reemplaza el elemento en el índice pos por nuevo-val.
+(define replace-at
+  (lambda (lst pos nuevo-val)
+    (cond
+      [(null? lst) '()]
+      [(= pos 0) (cons nuevo-val (cdr lst))]
+      [else (cons (car lst) (replace-at (cdr lst) (- pos 1) nuevo-val))])))
 ```
 
-**Estrategia de demostración:** {{recursión estructural sobre ... /
-iteración con invariante ...}}.
+**Estrategia de demostración:** Inducción matemática sobre el índice $p \in \mathbb{N}$ (con $0 \le p < \vert{}L\vert{}$).
 
 **Demostración.**
 
-- **Caso base** ($a = {{\ldots}}$):
+- **Caso base** ($p = 0$):
+  Como $0 \le p < \vert{}L\vert{}$, se cumple $\vert{}L\vert{} \ge 1$, por lo que `(null? lst)` es `#f` y $L = \text{cons}(x_0, L_{\text{cola}})$ con $\vert{}L_{\text{cola}}\vert{} = n - 1$. La condición `(= pos 0)` es `#t` y la función evalúa a:
+  $$P_{\text{replace-at}}(L, 0, v) \to \text{cons}(v, L_{\text{cola}}) = L'$$
+  Verificamos:
+  1. $\vert{}L'\vert{} = 1 + \vert{}L_{\text{cola}}\vert{} = 1 + (n - 1) = n = \vert{}L\vert{}$.
+  2. $L'[0] = \text{car}(L') = v$.
+  3. Para todo $i \in \{1,\dots,n-1\}$, $L'[i] = L_{\text{cola}}[i-1] = L[i]$.
 
-  $$
-  P_f({{\ldots}}) \to {{\ldots}} \quad \land \quad f({{\ldots}}) = {{\ldots}}
-  $$
+- **Caso inductivo** ($p = k + 1$ con $k \ge 0$):
+  Asumimos como hipótesis de inducción (HI) que para toda lista $M$ con $\vert{}M\vert{} > k$, `replace-at(M, k, v)` retorna $M'$ tal que $\vert{}M'\vert{} = \vert{}M\vert{}$, $M'[k] = v$ y $\forall j \neq k,\, M'[j] = M[j]$.
+  Como $p = k + 1 < n$, se tiene $n \ge 2$, así que $L = \text{cons}(x_0, L_{\text{cola}})$ con $\vert{}L_{\text{cola}}\vert{} = n - 1 > k$. Ni `(null? lst)` ni `(= pos 0)` se cumplen, por lo que:
+  $$P_{\text{replace-at}}(L, k+1, v) \to \text{cons}(x_0, \text{replace-at}(L_{\text{cola}}, k, v))$$
+  Por la HI aplicada a $L_{\text{cola}}$, sea $L'_{\text{cola}} = \text{replace-at}(L_{\text{cola}}, k, v)$:
+  1. $\vert{}L'\vert{} = 1 + \vert{}L'_{\text{cola}}\vert{} = 1 + (n - 1) = n = \vert{}L\vert{}$.
+  2. $L'[k+1] = L'_{\text{cola}}[k] = v$.
+  3. Para $i = 0 \neq k+1$, $L'[0] = x_0 = L[0]$. Para $i = j + 1$ con $j \neq k$, $L'[j+1] = L'_{\text{cola}}[j] = L_{\text{cola}}[j] = L[j+1]$.
 
-  Por lo tanto $P_f({{\ldots}}) = f({{\ldots}})$.
+- **Terminación.** En cada llamada recursiva el segundo argumento decrece de $p$ a $p - 1$. Como $p \in \mathbb{N}$ está acotado inferiormente por $0$, la recursión finaliza en $p$ pasos.
 
-- **Caso inductivo** ($a = {{\ldots}}$): asumimos la hipótesis de
-  inducción $P_f(a') = f(a')$ para {{las subestructuras de $a$}}.
-
-  $$
-  P_f(a) \to {{\ldots (aplicar una evaluación) \ldots}}
-  $$
-
-  Usando la hipótesis de inducción:
-
-  $$
-  \quad = {{\ldots}} = f(a).
-  $$
-
-- **Terminación.** {{Identifique la medida que decrece estrictamente
-  en cada llamada recursiva — por ejemplo, la longitud de la lista o
-  el tamaño del AST — y argumente que está acotada inferiormente.}}
-
-**Conclusión:** $\forall a \in A \,:\, P_f(a) = f(a)$, por lo tanto
-`{{nombre-funcion-1}}` es correcta respecto a su especificación.
+**Conclusión:** `replace-at` es correcta respecto a su especificación.
 
 ---
 
-### 2.2 Corrección de `{{nombre-funcion-2}}`
+### 2.2 Corrección de `swap-exp` (5.2)
 
 **Especificación.**
 
-- **Tipo:** `{{...}}`
-- **Pre-condición:** $\{{\ldots}\}$.
-- **Post-condición:** $\{{\ldots}\}$.
+Sea $\sigma$ el almacén antes de evaluar `swap(ref1-exp, ref2-exp)` y $\sigma'$ el almacén después de evaluarlo, donde `ref1-exp` evalúa a $\ell_1 = \texttt{a-ref}(p_1)$ y `ref2-exp` evalúa a $\ell_2 = \texttt{a-ref}(p_2)$ con $0 \le p_1, p_2 < \vert{}\sigma\vert{}$:
 
-**Código.**
+- **Post-condición sobre el almacén:**
+  $$\sigma'(\ell_1) = \sigma(\ell_2) \quad \land \quad \sigma'(\ell_2) = \sigma(\ell_1) \quad \land \quad \forall \ell \notin \{\ell_1, \ell_2\}:\ \sigma'(\ell) = \sigma(\ell)$$
+- **Post-condición sobre el valor retornado:** Retorna el contenido anterior de la segunda referencia: $v_{\text{ret}} = \sigma(\ell_2)$.
+- **Caso de error:** Si alguno de los dos operandos no satisface `referencia?`, levanta `eopl:error`.
 
-```racket
-(define ({{nombre-funcion-2}} ...)
-  ...)
+**Código (`src/interprete.rkt`).**
+
+```scheme
+(swap-exp (ref1-exp ref2-exp)
+  (let ([ref1 (evaluar-expresion ref1-exp env)]
+        [ref2 (evaluar-expresion ref2-exp env)])
+    (if (and (referencia? ref1) (referencia? ref2))
+        (let ([val1 (deref ref1)]
+              [val2 (deref ref2)])
+          (begin
+            (setref! ref1 val2)
+            (setref! ref2 val1)
+            val2))
+        (eopl:error 'evaluar-expresion 
+                    "swap requiere dos referencias"))))
 ```
 
-**Demostración.** {{Siga el mismo esquema: casos base, caso
-inductivo con hipótesis de inducción y terminación. Para casos de
-error explícitos —por ejemplo `eopl:error` cuando una condición no
-es booleana— demuestre que el programa levanta el error en ese caso y
-sólo en ese caso.}}
+**Diagrama de transición de estado de `swap-exp`:**
+
+```mermaid
+flowchart LR
+    S0["σ inicial<br/>σ(l1) = v1, σ(l2) = v2"] -->|"1. Lectura previa<br/>val1 ← deref(l1)<br/>val2 ← deref(l2)"| R["Variables léxicas<br/>val1 = v1, val2 = v2"]
+    R -->|"2. setref!(l1, val2)"| S1["σ₁ intermedio<br/>σ₁(l1) = v2, σ₁(l2) = v2"]
+    S1 -->|"3. setref!(l2, val1)"| S2["σ' final<br/>σ'(l1) = v2, σ'(l2) = v1<br/>Retorna: val2 = v2"]
+```
+
+**Demostración.**
+
+1. **Preservación de valores intermedios ($\ell_1 \neq \ell_2$):**
+   Antes de ejecutar `setref!`, el bloque `let` lee ambos contenidos en variables léxicas locales:
+   $$val_1 = \text{deref}(\ell_1) = \sigma(\ell_1), \qquad val_2 = \text{deref}(\ell_2) = \sigma(\ell_2)$$
+   De este modo el valor original $\sigma(\ell_1)$ queda resguardado en `val1` y no se pierde al sobrescribir $\ell_1$.
+   Luego, `begin` ejecuta secuencialmente:
+   - **Paso 1:** $\sigma_1 = \text{setref!}(\sigma, \ell_1, val_2)$, logrando $\sigma_1(\ell_1) = \sigma(\ell_2)$, $\sigma_1(\ell_2) = \sigma(\ell_2)$ y $\forall \ell \neq \ell_1:\ \sigma_1(\ell) = \sigma(\ell)$.
+   - **Paso 2:** $\sigma' = \text{setref!}(\sigma_1, \ell_2, val_1)$, logrando $\sigma'(\ell_2) = val_1 = \sigma(\ell_1)$, $\sigma'(\ell_1) = \sigma_1(\ell_1) = \sigma(\ell_2)$ y $\forall \ell \notin \{\ell_1, \ell_2\}:\ \sigma'(\ell) = \sigma_1(\ell) = \sigma(\ell)$.
+
+2. **Análisis del caso $\ell_1 = \ell_2$ (referencia consigo misma):**
+   - **Exigencia de la especificación:** Si $\ell_1 = \ell_2 = \ell$, el intercambio exige $\sigma'(\ell) = \sigma(\ell)$, $\forall \ell' \neq \ell:\ \sigma'(\ell') = \sigma(\ell')$ y $v_{\text{ret}} = \sigma(\ell)$.
+   - **Verificación:** Cuando `ref1` y `ref2` denotan la misma celda $\ell$, se obtiene $val_1 = \sigma(\ell)$ y $val_2 = \sigma(\ell)$. El primer `setref!` escribe $\sigma(\ell)$ en $\ell$, el segundo `setref!` vuelve a escribir $\sigma(\ell)$ en $\ell$ y la expresión retorna $val_2 = \sigma(\ell)$. El almacén final cumple $\sigma'(\ell) = \sigma(\ell)$ y ninguna otra celda es alterada.
+
+3. **Valor retornado y manejo de error:**
+   La última expresión de `begin` es `val2`, cuyo valor es $\sigma(\ell_2)$. Si `ref1` o `ref2` no cumplen `referencia?`, la guarda `(and (referencia? ref1) (referencia? ref2))` es `#f` y levanta `eopl:error`.
+
+**Conclusión:** `swap-exp` es correcta respecto a su especificación.
 
 ---
 
-### 2.3 Corrección de `{{nombre-funcion-3}}`
+## 3. Propiedades adicionales
 
-{{Repetir la misma estructura.}}
+### 3.1 Invariante del almacén (5.1)
+
+Sea $\sigma$ la lista `the-store` de longitud $\vert{}\sigma\vert{}$ y $\mathcal{R}$ el conjunto de referencias $\ell = \texttt{a-ref}(p)$ entregadas por `newref!`. Definimos la propiedad invariante $\text{Inv}(\sigma)$ como la conjunción de las cuatro condiciones:
+
+1. $\forall \texttt{a-ref}(p) \in \mathcal{R}:\ 0 \le p < \vert{}\sigma\vert{}$ (toda referencia apunta a una celda existente).
+2. $\vert{}\sigma\vert{}$ únicamente crece por medio de `newref!` (en $+1$ por llamada).
+3. Si $\sigma' = \text{setref!}(\sigma, \ell, v)$ con $\ell = \texttt{a-ref}(p)$ válido, entonces $\sigma'(p) = v$ y $\forall p' \neq p:\ \sigma'(p') = \sigma(p')$.
+4. Invocar `deref` sobre $\texttt{a-ref}(p)$ con $p < 0 \lor p \ge \vert{}\sigma\vert{}$ levanta `eopl:error` sin modificar $\sigma$.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Vacio : initialize-store!()\n|σ| = 0, Inv(σ₀)
+    Vacio --> Valido : newref!(v)\n|σ'| = |σ| + 1, ref = a-ref(|σ|)
+    Valido --> Valido : newref!(v)\n|σ'| = |σ| + 1, σ'(i)=σ(i) para i<|σ|
+    Valido --> Valido : setref!(a-ref(p), v) [0 ≤ p < |σ|]\n|σ'| = |σ|, σ'(p)=v, σ'(p')=σ(p')
+    Valido --> Valido : deref(a-ref(p)) [0 ≤ p < |σ|]\nσ' = σ, retorna σ(p)
+    Valido --> Error : deref / setref! fuera de rango\nlevanta eopl:error, σ' = σ
+```
+
+**Demostración de preservación:**
+
+- **Inicio (`initialize-store!`):** Establece `the-store` en `'()`, con $\vert{}\sigma_0\vert{} = 0$ y $\mathcal{R}_0 = \emptyset$. Las cuatro condiciones se cumplen vacuamente.
+- **`newref!(val)`:** Calcula `len = (length the-store)` $= \vert{}\sigma\vert{}$ y actualiza `the-store` a `(append the-store (list val))`, retornando `(a-ref len)`. Así $\vert{}\sigma'\vert{} = \vert{}\sigma\vert{} + 1$, la nueva referencia $\texttt{a-ref}(\vert{}\sigma\vert{})$ satisface $0 \le \vert{}\sigma\vert{} < \vert{}\sigma'\vert{}$, todas las referencias anteriores siguen en rango ($0 \le p < \vert{}\sigma\vert{} < \vert{}\sigma'\vert{}$), y para todo índice existente $0 \le i < \vert{}\sigma\vert{}$ se mantiene $\sigma'(i) = \sigma(i)$ porque `append` solo añade al final.
+- **`setref!(ref, val)`:** Desestructura `ref` como `(a-ref pos)`. Si $0 \le \text{pos} < \vert{}\sigma\vert{}$, reemplaza `the-store` con `(replace-at the-store pos val)`. Por la demostración de `replace-at` (sección 2.1), $\vert{}\sigma'\vert{} = \vert{}\sigma\vert{}$, $\sigma'(\text{pos}) = \text{val}$ y $\forall p' \neq \text{pos}:\ \sigma'(p') = \sigma(p')$. Si `pos` está fuera de rango, levanta `eopl:error` sin ejecutar `set!`.
+- **`deref(ref)`:** No contiene llamadas a `set!`, por lo que $\sigma' = \sigma$ y $\vert{}\sigma'\vert{} = \vert{}\sigma\vert{}$. Si $0 \le \text{pos} < \vert{}\sigma\vert{}$, retorna `(list-ref the-store pos)` $= \sigma(\text{pos})$; de lo contrario levanta `eopl:error`.
 
 ---
 
-## 3. Propiedades adicionales (si aplica)
+### 3.2 Solidez del chequeador estático (5.3)
 
-Incluya en esta sección cualquier propiedad adicional que el
-enunciado exija demostrar, por ejemplo:
+#### 1. Concordancia entre $\rho$ y $\Gamma$ ($\rho \models \Gamma$)
 
-- **Shadowing de ambientes** (`apply-env`): la ligadura más reciente
-  tiene prioridad sobre las anteriores.
-- **Secuencialidad de `let*`**: cada ligadura se evalúa en un
-  ambiente que incluye las anteriores.
-- **Equivalencia semántica** entre dos implementaciones (por ejemplo,
-  representación basada en listas vs. basada en procedimientos de un
-  mismo TAD).
-- **Invariante del almacén**: si $\sigma' = \text{setref!}(\sigma, \ell, v)$,
-  entonces $\sigma'(\ell) = v$ y $\sigma'(\ell') = \sigma(\ell')$ para todo
-  $\ell' \neq \ell$. La operación que reserva una celda es la única que
-  cambia la longitud del almacén.
-- **Invariante de la transacción**: sea $\sigma_0$ el almacén al entrar a
-  un bloque `atomic` y $\sigma$ el almacén en el momento de abortar. Si
-  el registro de la transacción guarda, para cada celda $\ell$ escrita
-  dentro del bloque, el valor $\sigma_0(\ell)$ que tenía al entrar, y la
-  longitud $|\sigma_0|$, entonces revertir devuelve exactamente
-  $\sigma_0$: las celdas registradas recuperan su valor, las que no se
-  escribieron nunca cambiaron, y las creadas adentro (posiciones
-  $\geq |\sigma_0|$) desaparecen. Demostrar por inducción sobre el
-  número de escrituras del bloque, y tratar aparte el caso de una
-  transacción hija que confirmó antes de que la padre abortara.
-- **Paso por referencia**: el parámetro queda ligado a la misma
-  referencia del argumento, de modo que una escritura dentro del
-  procedimiento se observa fuera. Contrastar con el paso por valor
-  sobre el mismo programa.
-- **Solidez de un chequeador de tipos**: si $\Gamma \vdash e : t$ y el
-  ambiente de valores $\rho$ concuerda con el ambiente de tipos
-  $\Gamma$, entonces $\text{value-of}(e, \rho)$ es un valor de tipo
-  $t$. Precisar primero qué significa la concordancia entre $\rho$ y
-  $\Gamma$.
+Un ambiente de valores $\rho$ **concuerda** con un ambiente de tipos $\Gamma$ ($\rho \models \Gamma$) si y solo si $\text{dom}(\rho) = \text{dom}(\Gamma)$ y para cada identificador $x \in \text{dom}(\Gamma)$, el valor $v = \rho(x)$ pertenece a la denotación semántica $\llbracket \Gamma(x) \rrbracket$:
 
-Cada propiedad debe enunciarse formalmente y demostrarse con el
-mismo rigor que las funciones anteriores.
+- $v \in \llbracket \texttt{num} \rrbracket \iff \texttt{(number? v)} = \texttt{\#t}$.
+- $v \in \llbracket \texttt{bool} \rrbracket \iff \texttt{(boolean? v)} = \texttt{\#t}$.
+- $v \in \llbracket t_1 * \dots * t_n \to t_r \rrbracket \iff v = \texttt{closure}((x_1,\dots,x_n), c, \rho_{\text{clos}})$ tal que para cualesquiera $v_1 \in \llbracket t_1 \rrbracket, \dots, v_n \in \llbracket t_n \rrbracket$, evaluar $c$ en $\rho_{\text{clos}}[x_1 \mapsto v_1, \dots, x_n \mapsto v_n]$ produce un valor en $\llbracket t_r \rrbracket$.
+
+#### 2. Enunciado de solidez (fragmento sin referencias)
+
+> **Propiedad de solidez:** Para toda expresión $e$ del fragmento de Cauca sin referencias, si $\Gamma \vdash e : t$ y $\rho \models \Gamma$, entonces $\texttt{evaluar-expresion}(e, \rho)$ produce un valor $v \in \llbracket t \rrbracket$.
+
+```mermaid
+flowchart TD
+    T["Juicio estático: Γ ⊢ e : t"] --> C["Concordancia: ρ ⊨ Γ"]
+    C --> E["Evaluación: v = evaluar-expresion(e, ρ)"]
+    E --> R["Garantía dinámica: v ∈ ⟦t⟧ (sin errores de tipo)"]
+```
+
+#### 3. Demostración por inducción sobre la derivación de tipos
+
+- **Caso `if`:** $e = \texttt{if } e_1 \texttt{ then } e_2 \texttt{ else } e_3 \texttt{ end}$.
+  Por la regla de tipado de `if`, se tienen las derivaciones menores:
+  $$\Gamma \vdash e_1 : \texttt{bool}, \qquad \Gamma \vdash e_2 : t, \qquad \Gamma \vdash e_3 : t$$
+  Dado $\rho \models \Gamma$:
+  1. Por hipótesis de inducción (HI) sobre $\Gamma \vdash e_1 : \texttt{bool}$, $v_1 = \texttt{evaluar-expresion}(e_1, \rho) \in \llbracket \texttt{bool} \rrbracket$, por lo que `(boolean? v1)` es `#t`.
+  2. Si $v_1 = \texttt{\#t}$, el intérprete evalúa $e_2$ en $\rho$, y por HI sobre $\Gamma \vdash e_2 : t$ retorna $v_2 \in \llbracket t \rrbracket$.
+  3. Si $v_1 = \texttt{\#f}$, el intérprete evalúa $e_3$ en $\rho$, y por HI sobre $\Gamma \vdash e_3 : t$ retorna $v_3 \in \llbracket t \rrbracket$.
+  En ambos casos el resultado pertenece a $\llbracket t \rrbracket$.
+
+- **Caso `apply`:** $e = \texttt{apply } f(e_1, \dots, e_n)$.
+  Por la regla de tipado de `apply`, se tienen las derivaciones menores:
+  $$\Gamma \vdash f : (t_1 * \dots * t_n \to t) \quad \text{y} \quad \forall i \in \{1,\dots,n\}:\ \Gamma \vdash e_i : t_i$$
+  Dado $\rho \models \Gamma$:
+  1. Por HI sobre $\Gamma \vdash f : (t_1 * \dots * t_n \to t)$, $v_f = \texttt{evaluar-expresion}(f, \rho)$ es una clausura $\texttt{closure}((x_1,\dots,x_n), c, \rho_{\text{clos}})$ de aridad $n$.
+  2. Por HI sobre cada $\Gamma \vdash e_i : t_i$, cada argumento evalúa a $v_i \in \llbracket t_i \rrbracket$ (y en el fragmento sin referencias, `copia-por-valor` retorna $v_i$ sin cambios).
+  3. Al aplicar `apply-procedure`, se evalúa $c$ en $\rho_{\text{clos}}[x_1 \mapsto v_1, \dots, x_n \mapsto v_n]$, lo cual por la definición de $v_f \in \llbracket t_1 * \dots * t_n \to t \rrbracket$ produce un valor $v \in \llbracket t \rrbracket$.
+
+#### 4. ¿Qué se rompe al agregar referencias y por qué entra el almacén $\sigma$?
+
+Al añadir referencias (`newref`, `deref`, `setref`, `swap`), el ambiente $\rho$ liga las variables a **direcciones de memoria** $\ell = \texttt{a-ref}(p)$ y no a los valores almacenados dentro de las celdas.
+
+1. **Qué falla en el enunciado original:** Mirando únicamente $\rho$ y $\Gamma$ no es posible verificar si una dirección $\ell$ realmente guarda un valor del tipo $t$ prometido por $\texttt{refto}(t)$, ya que ese contenido reside en $\sigma(p)$ y puede mutar mediante `setref` o `swap` a través de alias.
+2. **Necesidad del almacén $\sigma$ y tipado de almacén $\Sigma$:** El enunciado debe extenderse con un **tipado de almacén** $\Sigma$ que asocia cada dirección válida $p < |\sigma|$ con el tipo de dato que guarda, exigiendo la concordancia conjunta $(\rho, \sigma) \models (\Gamma, \Sigma)$ (es decir, $\rho \models \Gamma$ y $\forall p < |\sigma|:\ \sigma(p) \in \llbracket \Sigma(p) \rrbracket$). Así, la solidez garantiza que evaluar $e$ bajo $(\rho, \sigma)$ produce un valor $v \in \llbracket t \rrbracket$ junto con un almacén actualizado $\sigma'$ que preserva los tipos bajo alguna extensión $\Sigma' \supseteq \Sigma$.
 
 ---
 
 ## 4. Referencias
 
-- Friedman, D. P., & Wand, M. *Essentials of Programming Languages*,
-  3.ª ed., MIT Press, 2008. Secciones {{…}}.
-- {{Otras referencias que hayan consultado.}}
+- Friedman, D. P., & Wand, M. *Essentials of Programming Languages*, 3.ª ed., MIT Press, 2008. Capítulo 4 (sección 4.2 `EXPLICIT-REFS`, sección 4.3 paso por referencia) y capítulo 7 (secciones 7.1 a 7.3, chequeo de tipos).
+- Pierce, B. C. *Types and Programming Languages*, MIT Press, 2002. Capítulos 8 y 13 (reglas de tipado y referencias).
+- Documentación de Racket (`#lang eopl`): https://docs.racket-lang.org/eopl/

@@ -96,5 +96,4 @@
               1)
             (eopl:error 'setref! "Referencia fuera de rango: ~a" pos))))))
 
-
 (provide (all-defined-out))

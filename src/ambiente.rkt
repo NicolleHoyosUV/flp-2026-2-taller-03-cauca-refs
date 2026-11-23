@@ -51,7 +51,7 @@
   (lambda (nombres idss cuerpos env)
     (ambiente-recursivo nombres idss cuerpos env)))
 
-;; posicion : symbol x (listof symbol) -> entero | #f
+;; posicion-en-ids : symbol x (listof symbol) -> entero | #f
 ;; Índice de id en la lista, o #f si no está.
 (define posicion-en-ids
   (lambda (id ids)
